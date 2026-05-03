@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PERMANENT RECORD — DVD MENÚ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+ 
+  :root {
+    --bg-dark: #020810;
+    --steel-light: #7ab3d4;
+    --steel-mid: #3a6a8a;
+    --steel-dark: #1a3a52;
+    --accent-cyan: #00e5ff;
+    --accent-neon: #00ff41;
+    --accent-gold: #ffd700;
+    --accent-red: #ff2244;
+    --text-bright: #e0f4ff;
+    --text-dim: #6a9ab0;
+    --glow-cyan: rgba(0,229,255,0.6);
+    --glow-neon: rgba(0,255,65,0.7);
+  }
+ 
+  * { margin:0; padding:0; box-sizing:border-box; }
+ 
+  body {
+    background: var(--bg-dark);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace;
+    overflow: hidden; position: relative;
+  }
+ 
+  /* Scanlines */
+  body::before {
+    content:''; position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    pointer-events:none; z-index:1000;
+  }
+  /* Vignette */
+  body::after {
+    content:''; position:fixed; inset:0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+    pointer-events:none; z-index:999;
+  }
+ 
+  .bg-grid {
+    position:fixed; inset:0; z-index:0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,60,120,0.25) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(0,30,80,0.3) 0%, transparent 50%),
+      linear-gradient(180deg, #020810 0%, #030f20 50%, #020810 100%);
+  }
+  .particles { position:fixed; inset:0; z-index:1; overflow:hidden; }
+  .particle {
+    position:absolute; border-radius:50%;
+    background: var(--accent-neon); opacity:0;
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0%   { transform:translateY(100vh) scale(0); opacity:0; }
+    10%  { opacity:0.4; }
+    90%  { opacity:0.12; }
+    100% { transform:translateY(-10vh) scale(1); opacity:0; }
+  }
+ 
+  /* ═══════════════════════════════════════
+     FBI WARNING SCREEN
+  ═══════════════════════════════════════ */
+  #fbi-warning {
+    position:fixed; inset:0; z-index:5000;
+    background: #00000f;
+    display:flex; align-items:center; justify-content:center;
+    animation: fbi-exit 0.5s ease 3.3s forwards;
+  }
+  @keyframes fbi-exit { to { opacity:0; pointer-events:none; visibility:hidden; } }
+ 
+  .fbi-box {
+    width: min(680px, 92vw);
+    border: 4px solid #cc0000;
+    background: #000820;
+    box-shadow:
+      0 0 0 8px #000820,
+      0 0 0 12px #cc0000,
+      0 0 60px rgba(204,0,0,0.4),
+      0 0 120px rgba(204,0,0,0.15);
+    animation: fbi-blink 0.12s steps(1) 0.8s 4;
+  }
+  @keyframes fbi-blink { 0%,100%{opacity:1;} 50%{opacity:0.65;} }
+ 
+  .fbi-header {
+    background: #bb0000;
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    padding:14px 20px;
+    border-bottom: 3px solid #ff4444;
+  }
+  .fbi-seal {
+    width:52px; height:52px; border-radius:50%;
+    background: radial-gradient(circle at 40% 35%, #fffbe0 0%, #d4a820 30%, #8a6010 70%, #4a3000 100%);
+    border:2px solid #ffd700;
+    box-shadow:0 0 12px rgba(255,215,0,0.5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; line-height:1;
+  }
+  .fbi-header-titles { text-align:center; }
+  .fbi-dept { font-size:10px; letter-spacing:3px; color:#ffaaaa; text-transform:uppercase; font-family:'Courier New',monospace; }
+  .fbi-main-title { font-family:Impact,sans-serif; font-size:30px; letter-spacing:6px; color:#ffffff; text-shadow:0 0 14px rgba(255,100,100,0.6); }
+ 
+  .fbi-body { padding:22px 28px 26px; }
+  .fbi-warn-label {
+    font-family:Impact,sans-serif; font-size:12px; letter-spacing:4px;
+    color:#cc0000; text-align:center; margin-bottom:14px;
+    text-shadow:0 0 8px rgba(200,0,0,0.6);
+  }
+  .fbi-text { font-family:'Courier New',monospace; font-size:10.5px; line-height:1.85; color:rgba(200,220,255,0.85); margin-bottom:10px; }
+  .fbi-text strong { color:#ffffff; }
+  .fbi-text .fbi-red { color:#ff5566; }
+  .fbi-divider { height:1px; margin:14px 0; background:linear-gradient(90deg,transparent,#cc0000,#0044cc,#cc0000,transparent); }
+  .fbi-bluebar {
+    background:#001a55; border:1px solid #003399;
+    padding:7px 14px; margin-top:12px;
+    font-family:'Courier New',monospace; font-size:9px; letter-spacing:2px;
+    color:rgba(100,160,255,0.75); text-align:center; text-transform:uppercase;
+  }
+ 
+  /* ═══════════════════════════════════════
+     MAIN DVD FRAME
+  ═══════════════════════════════════════ */
+  .dvd-frame {
+    position:relative; z-index:10;
+    width: min(860px, 96vw);
+    background: linear-gradient(145deg, #0a1a2e 0%, #060e1c 40%, #08192e 100%);
+    border-radius:12px;
+    border:1px solid rgba(100,160,200,0.2);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 0 40px rgba(0,100,180,0.15),
+      0 0 80px rgba(0,50,120,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 0 rgba(0,0,0,0.5);
+    overflow:hidden;
+    opacity:0;
+    animation: main-appear 0.6s ease 3.8s forwards;
+  }
+  @keyframes main-appear { to { opacity:1; } }
+ 
+  /* Top bar */
+  .dvd-topbar {
+    background: linear-gradient(180deg,rgba(120,180,220,0.12) 0%,rgba(60,100,140,0.06) 50%,transparent 100%);
+    border-bottom:1px solid rgba(100,160,210,0.15);
+    padding:18px 28px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .dvd-logo-area { display:flex; align-items:center; gap:14px; }
+  .dvd-disc-icon {
+    width:38px; height:38px; border-radius:50%;
+    background: conic-gradient(from 0deg,#1a3a5a,#3a7aaa,#7abcd4,#3a7aaa,#1a3a5a,#5a9abc,#c0e0f0,#5a9abc,#1a3a5a);
+    border:2px solid rgba(180,220,255,0.3);
+    box-shadow:0 0 10px rgba(0,200,255,0.2),inset 0 0 6px rgba(0,0,0,0.5);
+    animation:spin 8s linear infinite; position:relative;
+  }
+  .dvd-disc-icon::after { content:''; position:absolute; inset:30%; border-radius:50%; background:#020810; border:1px solid rgba(100,180,220,0.3); }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .studio-label { font-family:'Courier New',monospace; font-size:9px; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; line-height:1.6; }
+  .studio-label strong { display:block; font-size:11px; color:var(--steel-light); letter-spacing:4px; }
+  .dvd-badge { display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+  .badge-text { font-size:8px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; }
+  .badge-rating { background:var(--steel-dark); border:1px solid var(--steel-mid); color:var(--steel-light); font-size:10px; font-weight:bold; padding:2px 8px; letter-spacing:2px; }
+ 
+  /* Hero */
+  .dvd-hero {
+    padding:28px 30px 20px; text-align:center;
+    border-bottom:1px solid rgba(60,100,140,0.2);
+    position:relative; overflow:hidden;
+  }
+  .dvd-hero::before { content:''; position:absolute; top:-50%; left:50%; transform:translateX(-50%); width:300px; height:200px; background:radial-gradient(ellipse,rgba(0,100,200,0.08) 0%,transparent 70%); pointer-events:none; }
+  .movie-eyebrow { font-size:9px; color:var(--accent-cyan); letter-spacing:6px; text-transform:uppercase; margin-bottom:8px; opacity:0.8; }
+  .movie-title { font-family:Impact,'Arial Black',sans-serif; font-size:clamp(40px,7vw,72px); color:#fff; letter-spacing:8px; text-transform:uppercase; line-height:0.9; text-shadow:0 0 20px rgba(0,200,255,0.4),0 0 40px rgba(0,100,200,0.2),2px 2px 0 rgba(0,0,0,0.8); }
+  .movie-title .title-accent { display:block; font-size:0.45em; letter-spacing:16px; color:var(--accent-cyan); text-shadow:0 0 10px var(--glow-cyan),0 0 20px var(--glow-cyan); margin-top:4px; animation:flicker 6s ease-in-out infinite; }
+  @keyframes flicker { 0%,95%,100%{opacity:1;} 96%{opacity:0.7;} 97%{opacity:1;} 98%{opacity:0.5;} 99%{opacity:1;} }
+  .movie-subtitle { font-size:10px; color:var(--text-dim); letter-spacing:3px; margin-top:10px; text-transform:uppercase; }
+  .divider-line { margin:12px auto; width:200px; height:1px; background:linear-gradient(90deg,transparent,var(--steel-mid),var(--accent-cyan),var(--steel-mid),transparent); box-shadow:0 0 6px var(--glow-cyan); }
+ 
+  /* ═══════════════════════════════════════
+     MENU BUTTONS — metallic bevel + neon green glow
+  ═══════════════════════════════════════ */
+  .menu-section { padding:20px 30px 24px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+ 
+  .menu-btn {
+    position:relative; padding:11px 22px;
+    font-family:Impact,'Arial Black',sans-serif; font-size:13px; letter-spacing:2px;
+    text-transform:uppercase; color:#c0d8f0;
+    cursor:pointer; border:none; outline:none;
+    /* Metallic gradient: bright highlight → dark base */
+    background: linear-gradient(180deg,
+      #526e8a 0%,
+      #3d5570 12%,
+      #283d58 28%,
+      #1c2e46 50%,
+      #142038 72%,
+      #0c1628 88%,
+      #080e1e 100%);
+    /* Bevel borders */
+    border-top:    2px solid rgba(200,230,255,0.55);
+    border-left:   2px solid rgba(170,210,255,0.38);
+    border-right:  2px solid rgba(0,0,0,0.80);
+    border-bottom: 2px solid rgba(0,0,0,0.90);
+    box-shadow:
+      inset 0  2px 4px rgba(255,255,255,0.15),
+      inset 0 -2px 4px rgba(0,0,0,0.55),
+      inset  2px 0 3px rgba(255,255,255,0.07),
+      inset -2px 0 3px rgba(0,0,0,0.40),
+      0 6px 16px rgba(0,0,0,0.6),
+      0 2px 4px  rgba(0,0,0,0.4);
+    transition: all 0.18s ease;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+    min-width:130px; text-align:center;
+  }
+  /* Gloss strip */
+  .menu-btn::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(255,255,255,0.15) 0%,rgba(255,255,255,0.04) 48%,transparent 49%);
+    pointer-events:none;
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+  /* Neon green glow on hover */
+  .menu-btn:hover {
+    color:#e0ffe8;
+    background: linear-gradient(180deg,#224432 0%,#183325 25%,#102418 55%,#081608 85%,#040e06 100%);
+    border-top-color:  rgba(0,255,65,0.80);
+    border-left-color: rgba(0,255,65,0.50);
+    border-right-color: rgba(0,0,0,0.85);
+    border-bottom-color: rgba(0,0,0,0.95);
+    box-shadow:
+      inset 0 2px 4px rgba(0,255,65,0.20),
+      inset 0 -2px 4px rgba(0,0,0,0.55),
+      0 0 12px  rgba(0,255,65,0.60),
+      0 0 28px  rgba(0,255,65,0.28),
+      0 0 60px  rgba(0,255,65,0.10),
+      0 6px 16px rgba(0,0,0,0.55);
+    transform:translateY(-1px);
+    text-shadow:0 0 8px var(--glow-neon), 0 0 18px rgba(0,255,65,0.5);
+  }
+  .menu-btn:active { transform:translateY(1px); box-shadow:inset 0 3px 7px rgba(0,0,0,0.65),0 2px 5px rgba(0,0,0,0.4); }
+  .menu-btn.active {
+    color:var(--accent-neon);
+    background: linear-gradient(180deg,#1a3d22 0%,#0e2616 100%);
+    border-top-color:  rgba(0,255,65,0.90);
+    border-left-color: rgba(0,255,65,0.55);
+    box-shadow:
+      inset 0 3px 6px rgba(0,0,0,0.6),
+      0 0 16px rgba(0,255,65,0.60),
+      0 0 40px rgba(0,255,65,0.22);
+    text-shadow:0 0 10px var(--glow-neon), 0 0 24px var(--glow-neon);
+  }
+  .btn-icon { display:inline-block; margin-right:5px; font-size:11px; opacity:0.8; }
+ 
+  /* Content panel */
+  .content-outer { padding:0 26px 26px; }
+  .content-panel {
+    background:linear-gradient(160deg,rgba(4,12,24,0.95) 0%,rgba(3,9,18,0.98) 100%);
+    border:1px solid rgba(40,80,120,0.3); border-radius:6px; min-height:280px;
+    position:relative; overflow:hidden;
+    box-shadow:inset 0 0 30px rgba(0,0,0,0.5),0 0 20px rgba(0,0,0,0.4);
+  }
+  .content-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,200,255,0.3),transparent); }
+  .panel-corner { position:absolute; width:16px; height:16px; border-color:rgba(0,180,240,0.4); border-style:solid; z-index:2; }
+  .panel-corner.tl { top:6px; left:6px;   border-width:1px 0 0 1px; }
+  .panel-corner.tr { top:6px; right:6px;  border-width:1px 1px 0 0; }
+  .panel-corner.bl { bottom:6px; left:6px;  border-width:0 0 1px 1px; }
+  .panel-corner.br { bottom:6px; right:6px; border-width:0 1px 1px 0; }
+  .content-screen { position:relative; z-index:1; }
+ 
+  /* Idle */
+  .idle-state { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:280px; padding:30px; text-align:center; }
+  .idle-eye { width:60px; height:60px; margin-bottom:16px; animation:pulse-eye 3s ease-in-out infinite; }
+  @keyframes pulse-eye { 0%,100%{opacity:0.1;transform:scale(1);} 50%{opacity:0.3;transform:scale(1.05);} }
+  .idle-text { font-size:11px; color:var(--text-dim); letter-spacing:3px; text-transform:uppercase; animation:blink-cur 1.2s step-end infinite; }
+  @keyframes blink-cur { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+ 
+  /* Content views */
+  .content-view { display:none; opacity:0; padding:28px 30px; animation:fadeIn 0.4s ease forwards; }
+  .content-view.visible { display:block; opacity:1; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+ 
+  .view-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid rgba(0,180,220,0.15); }
+  .view-number { font-family:Impact,sans-serif; font-size:32px; color:rgba(0,180,240,0.15); line-height:1; user-select:none; }
+  .view-eyebrow { font-size:9px; color:var(--accent-cyan); letter-spacing:4px; text-transform:uppercase; opacity:0.7; }
+  .view-title { font-family:Impact,'Arial Black',sans-serif; font-size:20px; color:#fff; letter-spacing:3px; text-transform:uppercase; text-shadow:0 0 10px rgba(0,180,240,0.3); line-height:1.1; }
+ 
+  .text-scroll { max-height:340px; overflow-y:auto; padding-right:8px; scrollbar-width:thin; scrollbar-color:rgba(0,150,200,0.3) transparent; }
+  .text-scroll::-webkit-scrollbar { width:4px; }
+  .text-scroll::-webkit-scrollbar-thumb { background:rgba(0,150,200,0.3); border-radius:2px; }
+ 
+  .body-text { font-size:12px; color:rgba(180,215,240,0.85); line-height:1.8; }
+  .body-text p { margin-bottom:12px; }
+  .body-text .highlight { color:var(--accent-cyan); font-weight:bold; }
+  .body-text .redacted { background:rgba(255,0,0,0.15); border-left:2px solid rgba(255,30,60,0.5); padding:8px 12px; margin:12px 0; font-size:11px; color:rgba(255,150,160,0.9); letter-spacing:1px; }
+  .body-text .quote-block { border-left:2px solid rgba(0,200,255,0.4); padding:10px 14px; margin:14px 0; font-style:italic; color:rgba(150,200,230,0.9); font-size:11px; background:rgba(0,100,160,0.06); }
+ 
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:16px 0; }
+  .stat-box { background:rgba(0,40,80,0.4); border:1px solid rgba(0,120,180,0.2); padding:10px 12px; border-radius:4px; text-align:center; }
+  .stat-num { font-family:Impact,sans-serif; font-size:24px; color:var(--accent-cyan); text-shadow:0 0 8px var(--glow-cyan); line-height:1; }
+  .stat-label { font-size:9px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+ 
+  /* ─── Mermaid container ─── */
+  .mermaid-wrap { width:100%; overflow-x:auto; padding:14px; background:rgba(2,6,14,0.6); border-radius:4px; border:1px solid rgba(30,60,100,0.3); }
+  .mermaid-wrap .mermaid { display:flex; justify-content:center; }
+  .mermaid-legend { display:flex; gap:18px; flex-wrap:wrap; margin-top:12px; font-size:9px; color:rgba(80,130,160,0.6); letter-spacing:1px; }
+  .leg-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+ 
+  /* Commentary grid */
+  .commentary-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+  @media(max-width:600px){ .commentary-grid{ grid-template-columns:1fr; } }
+  .comm-block { background:rgba(0,20,50,0.4); border:1px solid rgba(0,100,160,0.2); padding:12px 14px; border-radius:4px; border-top:2px solid rgba(0,180,240,0.3); }
+  .comm-label { font-size:9px; color:var(--accent-cyan); letter-spacing:3px; text-transform:uppercase; margin-bottom:5px; opacity:0.7; }
+  .comm-text { font-size:11px; color:rgba(160,200,230,0.85); line-height:1.75; }
+ 
+  /* Critique cards */
+  .critique-cards { display:flex; flex-direction:column; gap:16px; margin-top:4px; }
+  .critique-card { background:rgba(14,2,2,0.65); border:1px solid rgba(180,30,50,0.3); border-left:3px solid rgba(220,30,60,0.75); padding:16px 18px; border-radius:0 4px 4px 0; position:relative; overflow:hidden; }
+  .critique-card::before { content:''; position:absolute; top:0; left:0; bottom:0; width:40px; background:linear-gradient(90deg,rgba(160,0,25,0.09),transparent); pointer-events:none; }
+  .critique-num { font-size:9px; color:rgba(220,60,80,0.7); letter-spacing:3px; text-transform:uppercase; margin-bottom:5px; }
+  .critique-title { font-family:Impact,'Arial Black',sans-serif; font-size:16px; color:rgba(255,145,155,1); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; text-shadow:0 0 8px rgba(255,0,40,0.35); }
+  .critique-text { font-size:11.5px; color:rgba(210,160,165,0.9); line-height:1.82; }
+  .critique-verdict { display:inline-block; margin-top:10px; background:rgba(140,0,25,0.28); border:1px solid rgba(220,30,60,0.38); padding:3px 10px; font-size:9px; letter-spacing:2px; color:rgba(255,100,120,0.85); text-transform:uppercase; }
+ 
+  /* Footer */
+  .dvd-footer { background:rgba(0,0,0,0.3); border-top:1px solid rgba(40,80,120,0.2); padding:10px 28px; display:flex; align-items:center; justify-content:space-between; }
+  .footer-dots { display:flex; gap:5px; }
+  .dot { width:6px; height:6px; border-radius:50%; background:rgba(0,150,200,0.3); }
+  .dot.active { background:var(--accent-neon); box-shadow:0 0 5px var(--glow-neon); }
+  .footer-info { font-size:9px; color:rgba(60,100,130,0.7); letter-spacing:2px; text-transform:uppercase; }
+  .footer-copy { font-size:9px; color:rgba(50,80,110,0.6); letter-spacing:1px; }
+</style>
+</head>
+<body>
+ 
+<!-- ═══════════════════════════
+     AJUSTE 2: FBI WARNING SCREEN
+     Aparece 3 s antes del menú
+════════════════════════════ -->
+<div id="fbi-warning">
+  <div class="fbi-box">
+    <div class="fbi-header">
+      <div class="fbi-seal">⚖</div>
+      <div class="fbi-header-titles">
+        <div class="fbi-dept">United States Department of Justice · Federal Bureau of Investigation</div>
+        <div class="fbi-main-title">FBI WARNING</div>
+      </div>
+      <div class="fbi-seal">🔒</div>
+    </div>
+    <div class="fbi-body">
+      <div class="fbi-warn-label">
+        — FEDERAL LAW PROVIDES SEVERE CIVIL AND CRIMINAL PENALTIES —<br>
+        — FOR THE UNAUTHORIZED REPRODUCTION, DISTRIBUTION OR EXHIBITION —
+      </div>
+      <div class="fbi-divider"></div>
+      <p class="fbi-text">
+        <strong>18 U.S.C. §§ 2319, 2319A, 506(a)</strong> — La reproducción o distribución no autorizada de
+        materiales protegidos constituye una <span class="fbi-red">VIOLACIÓN FEDERAL</span> sancionable con hasta
+        <strong>5 años de prisión</strong> y multas de hasta <strong>$250,000 USD</strong> por infracción.
+      </p>
+      <p class="fbi-text">
+        El FBI investiga activamente la distribución de material clasificado. La actividad digital de esta
+        sesión puede estar siendo supervisada bajo <span class="fbi-red">PRISM / XKeyscore / §215 Patriot Act</span>.
+        Su conexión ha quedado <strong>registrada</strong>.
+      </p>
+      <div class="fbi-divider"></div>
+      <div class="fbi-bluebar">
+        INTERPOL NOTICE ACTIVE &nbsp;·&nbsp; NSA XKEYSCORE MONITORING &nbsp;·&nbsp; SESSION ID: [REDACTED] &nbsp;·&nbsp; STATUS: TRACKED
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="bg-grid"></div>
+<div class="particles" id="particles"></div>
+ 
+<div class="dvd-frame">
+ 
+  <div class="dvd-topbar">
+    <div class="dvd-logo-area">
+      <div class="dvd-disc-icon"></div>
+      <div class="studio-label">
+        <strong>CLASSIFIED · RELEASE</strong>
+        NSA ARCHIVES // INTERNAL DISTRIBUTION
+      </div>
+    </div>
+    <div class="dvd-badge">
+      <span class="badge-text">Edition 2013</span>
+      <span class="badge-rating">Diego Armas</span>
+    </div>
+  </div>
+ 
+  <div class="dvd-hero">
+    <div class="movie-eyebrow">▶ &nbsp;DOCUMENTO CLASIFICADO&nbsp; ◀</div>
+    <div class="movie-title">PERMANENT<span class="title-accent">RECORD</span></div>
+    <div class="movie-subtitle">Edward Joseph Snowden · Memorias · 2019</div>
+    <div class="divider-line"></div>
+    <div style="font-size:10px;color:rgba(80,140,170,0.55);letter-spacing:2px;">SELECCIONA UNA OPCIÓN DEL MENÚ</div>
+  </div>
+ 
+  <div class="menu-section">
+    <button class="menu-btn" onclick="showSection('play')"       id="btn-play"><span class="btn-icon">▶</span>PLAY MOVIE</button>
+    <button class="menu-btn" onclick="showSection('bonus')"      id="btn-bonus"><span class="btn-icon">✦</span>BONUS FEATURES</button>
+    <button class="menu-btn" onclick="showSection('commentary')" id="btn-commentary"><span class="btn-icon">◈</span>COMMENTARY</button>
+    <button class="menu-btn" onclick="showSection('deleted')"    id="btn-deleted"><span class="btn-icon">✕</span>DELETED SCENES</button>
+  </div>
+ 
+  <div class="content-outer">
+    <div class="content-panel">
+      <div class="panel-corner tl"></div><div class="panel-corner tr"></div>
+      <div class="panel-corner bl"></div><div class="panel-corner br"></div>
+ 
+      <div class="content-screen">
+ 
+        <!-- IDLE -->
+        <div class="idle-state" id="view-idle">
+          <svg class="idle-eye" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="30" rx="28" ry="28" stroke="#00ff41" stroke-width="1.5"/>
+            <ellipse cx="30" cy="30" rx="18" ry="18" stroke="#00ff41" stroke-width="1" opacity="0.5"/>
+            <circle cx="30" cy="30" r="6" fill="#00ff41" opacity="0.7"/>
+            <line x1="2"  y1="30" x2="12" y2="30" stroke="#00ff41" stroke-width="1"/>
+            <line x1="48" y1="30" x2="58" y2="30" stroke="#00ff41" stroke-width="1"/>
+            <line x1="30" y1="2"  x2="30" y2="12" stroke="#00ff41" stroke-width="1"/>
+            <line x1="30" y1="48" x2="30" y2="58" stroke="#00ff41" stroke-width="1"/>
+          </svg>
+          <div class="idle-text">_ SELECCIONA UNA OPCIÓN _</div>
+        </div>
+ 
+        <!-- 01 PLAY MOVIE -->
+        <div class="content-view" id="view-play">
+          <div class="view-header">
+            <div class="view-number">01</div>
+            <div class="view-title-block">
+              <div class="view-eyebrow">Sinopsis · Análisis</div>
+              <div class="view-title">Vigilancia Masiva vs. Seguridad Nacional</div>
+            </div>
+          </div>
+          <div class="text-scroll">
+            <div class="body-text">
+              <div class="stats-row">
+                <div class="stat-box"><div class="stat-num">2013</div><div class="stat-label">Año filtración</div></div>
+                <div class="stat-box"><div class="stat-num">1.7M</div><div class="stat-label">Docs filtrados</div></div>
+                <div class="stat-box"><div class="stat-num">50+</div><div class="stat-label">Países vigilados</div></div>
+                <div class="stat-box"><div class="stat-num">∞</div><div class="stat-label">Metadatos</div></div>
+              </div>
+              <p><span class="highlight">PERMANENT RECORD</span> es la autobiografía de Edward Snowden, ex-analista de la NSA y CIA que en 2013 filtró miles de documentos clasificados al mundo, exponiendo la arquitectura secreta de la vigilancia masiva global.</p>
+              <div class="quote-block">"Argumentar que no te importa el derecho a la privacidad porque no tienes nada que ocultar no es diferente a decir que no te importa la libertad de expresión porque no tienes nada que decir."<br>— Edward Snowden</div>
+              <p><span class="highlight">EL DILEMA CENTRAL:</span> El libro enfrenta dos fuerzas aparentemente irreconciliables. Por un lado, la vigilancia masiva —programas como PRISM, XKeyscore y MUSCULAR— que recolectaban comunicaciones de millones sin orden judicial, bajo el argumento de <span class="highlight">prevenir el terrorismo</span>. Por otro, el derecho fundamental a la privacidad como condición de la libertad individual.</p>
+              <div class="redacted">⚠ PROGRAMA PRISM: Acceso directo a servidores de Google, Facebook, Apple, Microsoft — sin conocimiento de los usuarios. Operativo desde 2007.</div>
+              <p><span class="highlight">SEGURIDAD NACIONAL:</span> Los defensores argumentan que la inteligencia de señales (SIGINT) previno ataques reales. La NSA operaba bajo la Sección 215 del Patriot Act con supervisión del Tribunal FISA —aunque en secreto, sin adversario real—. La justificación: el coste de no saber es una ciudad destruida.</p>
+              <p><span class="highlight">VIGILANCIA MASIVA:</span> Snowden documenta que la infraestructura no buscaba sospechosos concretos: recopilaba todo y buscaba después. La metáfora perfecta —una aspiradora sobre toda la población en lugar de una lupa sobre un sospechoso— expone la <span class="highlight">arquitectura del abuso futuro</span> que se estaba construyendo.</p>
+              <p>El libro concluye que seguridad y privacidad no son opuestos reales: se puede tener la primera sin sacrificar la segunda. La pregunta es si las democracias tienen voluntad política de exigirlo.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- BONUS FEATURES -->
+        <div class="content-view" id="view-bonus">
+            <div class="view-header">
+              <div class="view-number">02</div>
+              <div class="view-title-block">
+                <div class="view-eyebrow">Diagrama · Conexiones</div>
+                <div class="view-title">Red de Actores y Conceptos</div>
+              </div>
+            </div>
+            <div class="diagram-area">
+              <svg viewBox="0 0 740 400" xmlns="http://www.w3.org/2000/svg" width="100%" style="font-family:'Courier New',monospace;">
+                <defs>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <filter id="glow-red">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="rgba(0,200,255,0.5)"/>
+                  </marker>
+                  <marker id="arrow-red" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="rgba(255,60,80,0.5)"/>
+                  </marker>
+                  <radialGradient id="node-cyan" cx="50%" cy="30%" r="60%">
+                    <stop offset="0%" stop-color="rgba(0,200,255,0.25)"/>
+                    <stop offset="100%" stop-color="rgba(0,60,120,0.6)"/>
+                  </radialGradient>
+                  <radialGradient id="node-red" cx="50%" cy="30%" r="60%">
+                    <stop offset="0%" stop-color="rgba(255,60,80,0.2)"/>
+                    <stop offset="100%" stop-color="rgba(120,0,30,0.6)"/>
+                  </radialGradient>
+                  <radialGradient id="node-gold" cx="50%" cy="30%" r="60%">
+                    <stop offset="0%" stop-color="rgba(255,215,0,0.2)"/>
+                    <stop offset="100%" stop-color="rgba(120,80,0,0.5)"/>
+                  </radialGradient>
+                </defs>
+   
+                <!-- Background grid lines -->
+                <g opacity="0.04" stroke="#00e5ff" stroke-width="0.5">
+                  <line x1="0" y1="100" x2="740" y2="100"/>
+                  <line x1="0" y1="200" x2="740" y2="200"/>
+                  <line x1="0" y1="300" x2="740" y2="300"/>
+                  <line x1="185" y1="0" x2="185" y2="400"/>
+                  <line x1="370" y1="0" x2="370" y2="400"/>
+                  <line x1="555" y1="0" x2="555" y2="400"/>
+                </g>
+   
+                <!-- CONNECTIONS -->
+                <!-- Snowden → NSA -->
+                <line x1="370" y1="200" x2="185" y2="200" stroke="rgba(0,200,255,0.35)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+                <!-- Snowden → Assange -->
+                <line x1="370" y1="200" x2="185" y2="100" stroke="rgba(0,200,255,0.25)" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+                <!-- Snowden → Criptografía -->
+                <line x1="370" y1="200" x2="555" y2="100" stroke="rgba(0,200,255,0.35)" stroke-width="1.5" marker-end="url(#arrow)"/>
+                <!-- NSA → PRISM -->
+                <line x1="185" y1="200" x2="60" y2="310" stroke="rgba(255,60,80,0.4)" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+                <!-- NSA → XKeyscore -->
+                <line x1="185" y1="200" x2="185" y2="330" stroke="rgba(255,60,80,0.4)" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+                <!-- Criptografía → TOR -->
+                <line x1="555" y1="100" x2="555" y2="310" stroke="rgba(0,200,255,0.3)" stroke-width="1.2" marker-end="url(#arrow)"/>
+                <!-- Criptografía → PGP -->
+                <line x1="555" y1="100" x2="680" y2="200" stroke="rgba(0,200,255,0.3)" stroke-width="1.2" marker-end="url(#arrow)"/>
+                <!-- Assange → WikiLeaks -->
+                <line x1="185" y1="100" x2="60" y2="80" stroke="rgba(255,215,0,0.35)" stroke-width="1.2" marker-end="url(#arrow)"/>
+                <!-- Snowden → Guardian -->
+                <line x1="370" y1="200" x2="370" y2="340" stroke="rgba(255,215,0,0.3)" stroke-width="1" stroke-dasharray="3,4" marker-end="url(#arrow)"/>
+   
+                <!-- NODE: SNOWDEN (center) -->
+                <g filter="url(#glow)" transform="translate(370,200)">
+                  <ellipse rx="60" ry="38" fill="url(#node-cyan)" stroke="rgba(0,229,255,0.7)" stroke-width="1.5"/>
+                  <ellipse rx="60" ry="38" fill="none" stroke="rgba(0,229,255,0.2)" stroke-width="4"/>
+                  <text text-anchor="middle" dy="-6" fill="#00e5ff" font-size="12" font-weight="bold" letter-spacing="2">SNOWDEN</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(0,200,255,0.6)" font-size="8" letter-spacing="1">NSA / CIA (2004–13)</text>
+                </g>
+   
+                <!-- NODE: NSA -->
+                <g filter="url(#glow-red)" transform="translate(185,200)">
+                  <ellipse rx="52" ry="32" fill="url(#node-red)" stroke="rgba(255,60,80,0.6)" stroke-width="1.5"/>
+                  <text text-anchor="middle" dy="-5" fill="rgba(255,140,150,0.95)" font-size="11" font-weight="bold" letter-spacing="2">NSA</text>
+                  <text text-anchor="middle" dy="9" fill="rgba(200,80,100,0.7)" font-size="8">SIGINT · FISA</text>
+                </g>
+   
+                <!-- NODE: ASSANGE -->
+                <g transform="translate(185,100)">
+                  <ellipse rx="50" ry="30" fill="url(#node-gold)" stroke="rgba(255,215,0,0.5)" stroke-width="1.5"/>
+                  <text text-anchor="middle" dy="-4" fill="rgba(255,220,80,0.95)" font-size="11" font-weight="bold" letter-spacing="2">ASSANGE</text>
+                  <text text-anchor="middle" dy="9" fill="rgba(200,170,40,0.7)" font-size="8">WikiLeaks · Refugio</text>
+                </g>
+   
+                <!-- NODE: CRIPTOGRAFÍA -->
+                <g filter="url(#glow)" transform="translate(555,100)">
+                  <ellipse rx="58" ry="33" fill="url(#node-cyan)" stroke="rgba(0,229,255,0.6)" stroke-width="1.5"/>
+                  <text text-anchor="middle" dy="-5" fill="#00e5ff" font-size="10" font-weight="bold" letter-spacing="1">CRIPTOGRAFÍA</text>
+                  <text text-anchor="middle" dy="9" fill="rgba(0,180,220,0.6)" font-size="8">Herramienta · Escudo</text>
+                </g>
+   
+                <!-- NODE: PRISM -->
+                <g transform="translate(60,310)">
+                  <rect x="-44" y="-22" width="88" height="44" rx="3" fill="rgba(120,0,30,0.5)" stroke="rgba(255,60,80,0.4)" stroke-width="1"/>
+                  <text text-anchor="middle" dy="-4" fill="rgba(255,120,130,0.9)" font-size="10" font-weight="bold" letter-spacing="2">PRISM</text>
+                  <text text-anchor="middle" dy="9" fill="rgba(200,80,90,0.6)" font-size="8">Big Tech · §215</text>
+                </g>
+   
+                <!-- NODE: XKEYSCORE -->
+                <g transform="translate(185,335)">
+                  <rect x="-52" y="-20" width="104" height="40" rx="3" fill="rgba(120,0,30,0.5)" stroke="rgba(255,60,80,0.4)" stroke-width="1"/>
+                  <text text-anchor="middle" dy="-3" fill="rgba(255,120,130,0.9)" font-size="9" font-weight="bold" letter-spacing="1">XKEYSCORE</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(200,80,90,0.6)" font-size="8">Tráfico web global</text>
+                </g>
+   
+                <!-- NODE: TOR -->
+                <g transform="translate(555,330)">
+                  <circle r="28" fill="rgba(0,40,80,0.6)" stroke="rgba(0,150,220,0.5)" stroke-width="1.5"/>
+                  <text text-anchor="middle" dy="-3" fill="rgba(100,200,240,0.9)" font-size="11" font-weight="bold" letter-spacing="2">TOR</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(60,150,190,0.6)" font-size="8">Anonimato</text>
+                </g>
+   
+                <!-- NODE: PGP -->
+                <g transform="translate(680,200)">
+                  <circle r="26" fill="rgba(0,40,80,0.5)" stroke="rgba(0,150,220,0.4)" stroke-width="1.5"/>
+                  <text text-anchor="middle" dy="-3" fill="rgba(100,200,240,0.9)" font-size="11" font-weight="bold" letter-spacing="1">PGP</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(60,150,190,0.6)" font-size="8">Cifrado E2E</text>
+                </g>
+   
+                <!-- NODE: WikiLeaks -->
+                <g transform="translate(60,80)">
+                  <rect x="-40" y="-18" width="80" height="36" rx="3" fill="rgba(80,50,0,0.5)" stroke="rgba(255,215,0,0.35)" stroke-width="1"/>
+                  <text text-anchor="middle" dy="-2" fill="rgba(255,215,80,0.9)" font-size="9" font-weight="bold">WIKILEAKS</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(200,170,50,0.6)" font-size="7.5">Plataforma filtrac.</text>
+                </g>
+   
+                <!-- NODE: THE GUARDIAN -->
+                <g transform="translate(370,360)">
+                  <rect x="-50" y="-18" width="100" height="36" rx="3" fill="rgba(20,50,0,0.5)" stroke="rgba(100,200,100,0.35)" stroke-width="1"/>
+                  <text text-anchor="middle" dy="-2" fill="rgba(120,220,120,0.9)" font-size="9" font-weight="bold">THE GUARDIAN</text>
+                  <text text-anchor="middle" dy="10" fill="rgba(80,170,80,0.6)" font-size="7.5">Glenn Greenwald</text>
+                </g>
+   
+              </svg>
+            </div>
+            <div class="body-text" style="margin-top:10px; font-size:10px; color:rgba(0,150,180,0.5); letter-spacing:1px;">
+              ▸ Nodos en <span style="color:rgba(0,200,255,0.7)">CYAN</span>: actores/conceptos clave · <span style="color:rgba(255,80,100,0.7)">ROJO</span>: programas vigilancia · <span style="color:rgba(255,215,0,0.7)">DORADO</span>: actores aliados
+            </div>
+          </div>
+  
+ 
+        <!-- 03 DIRECTOR'S COMMENTARY -->
+        <div class="content-view" id="view-commentary">
+          <div class="view-header">
+            <div class="view-number">03</div>
+            <div class="view-title-block">
+              <div class="view-eyebrow">Análisis Crítico · Valoración Personal</div>
+              <div class="view-title">Commentary del Analista</div>
+            </div>
+          </div>
+          <div class="text-scroll">
+            <div class="body-text">
+              <p><span class="highlight">PRIMERA IMPRESIÓN:</span> El libro es un ejercicio de autopresentación cuidadosamente calibrado. Snowden escribe con la pluma de quien sabe que será leído por fiscales, historiadores y fans a partes iguales. El resultado es una prosa demasiado pulida para ser una confesión espontánea y demasiado emotiva para ser un informe técnico. Esa tensión no es un defecto: es la firma de un texto estratégico.</p>
+              <div class="quote-block">"Permanent Record funciona mejor como artefacto político que como autobiografía. Es un acto de defensa legal escrito en primera persona con pretensión literaria."</div>
+              <div class="commentary-grid">
+                <div class="comm-block">
+                  <div class="comm-label">Arquitectura del relato</div>
+                  <div class="comm-text">Cada episodio de la infancia de Snowden —el padre militar, los primeros ordenadores, el patriotismo adolescente— está seleccionado para justificar el acto final. No es biografía espontánea: es retórica con índice cronológico. El yo que construye es el yo que necesita el argumento.</div>
+                </div>
+                <div class="comm-block">
+                  <div class="comm-label">Legado técnico verificable</div>
+                  <div class="comm-text">Independientemente de la figura, los programas revelados eran ilegales y masivos. El Tribunal del 9.º Circuito lo confirmó en 2020: PRISM violaba la FISA. Ese hecho no necesitaba a Snowden para ser verdad, pero necesitaba a alguien con valentía —o con nada que perder— para decirlo en voz alta.</div>
+                </div>
+                <div class="comm-block">
+                  <div class="comm-label">Carissa Véliz y el marco ético</div>
+                  <div class="comm-text">Donde Snowden describe sistemas, Véliz demuestra por qué importan. En <em>Privacy is Power</em> (2020), argumenta que la privacidad no es una preferencia personal sino una condición estructural de la democracia. Snowden lo intuye; Véliz lo fundamenta filosóficamente. Ambos se necesitan.</div>
+                </div>
+                <div class="comm-block">
+                  <div class="comm-label">El silencio de Moscú</div>
+                  <div class="comm-text">El libro no menciona lo que Rusia obtuvo ni cómo. Snowden lleva más de una década en un país que practica vigilancia estatal a escala que haría enrojecer a la NSA. Ese capítulo ausente es el más importante del libro que no existe.</div>
+                </div>
+              </div>
+              <p><span class="highlight">VALORACIÓN FINAL:</span> <em>Permanent Record</em> es un libro necesario con un narrador problemático, sobre un crimen institucional real cometido por un Estado que todavía no ha rendido cuentas. Vale la pena leerlo con escalpelo en mano, no con devoción.</p>
+            </div>
+          </div>
+        </div>
+ 
+        <!-- 04 DELETED SCENES: Crítica mordaz -->
+        <div class="content-view" id="view-deleted">
+          <div class="view-header">
+            <div class="view-number">04</div>
+            <div class="view-title-block">
+              <div class="view-eyebrow">Escenas Eliminadas · Crítica Sin Filtro</div>
+              <div class="view-title">Lo que el Libro Prefiere No Decir</div>
+            </div>
+          </div>
+          <div class="text-scroll">
+            <div class="critique-cards">
+ 
+              <div class="critique-card">
+                <div class="critique-num">⚠ Argumento A / 03</div>
+                <div class="critique-title">El Narcisismo de Quien Decide por Todos</div>
+                <div class="critique-text">
+                  Snowden tomó una decisión unilateral que afectó a millones de personas —agentes, aliados, operaciones activas, fuentes humanas— sin pedirle permiso a ninguna de ellas. Lo presenta como un acto de conciencia cívica. También puede leerse como el gesto más autoritario del libro: un solo individuo decidiendo que su juicio moral supera al de todas las instituciones democráticas combinadas. No porque esas instituciones tuviesen razón —claramente no la tenían— sino porque la lógica de "yo sé mejor que todos" es exactamente la misma que usa para criticar a la NSA. La pregunta incómoda que el libro nunca se hace es esta: ¿qué diferencia estructural existe entre el analista que filtra porque cree que el pueblo tiene derecho a saber, y el director de la NSA que vigila porque cree que el pueblo necesita protección? Ambos actúan en nombre de otros. Ambos sin pedirles permiso. Snowden omite esta simetría. Esa omisión no es humildad intelectual: es la firma de un ego que no puede reconocerse en el espejo.
+                </div>
+                <div class="critique-verdict">VEREDICTO: Coherencia interna comprometida por el propio argumento</div>
+              </div>
+ 
+              <div class="critique-card">
+                <div class="critique-num">⚠ Argumento B / 03</div>
+                <div class="critique-title">El Cifrado Es Obsoleto ante los Exploits Zero-Click</div>
+                <div class="critique-text">
+                  El libro vende Signal, Tor y PGP como si fueran escudos reales. En 2024, ese consejo tiene la vigencia de recomendar un candado en una puerta sin paredes. Los exploits Zero-Click —Pegasus de NSO Group, FORCEDENTRY de Apple, Operation Triangulation sobre iOS— no requieren que abras un enlace, instales nada ni cometas ningún error humano. Entran silenciosamente a través de vulnerabilidades en parsers de imagen, codecs de audio o protocolos de red, extraen todo lo que necesitan y se autoeliminan. El cifrado protege el canal de comunicación; los Zero-Click comprometen el dispositivo antes de que el cifrado tenga oportunidad de actuar. No escuchan tu llamada de Signal: controlan el micrófono del iPhone desde el que la haces. La NSA tiene catálogos enteros —el ANT catalog filtrado en 2013— de implantes hardware y software que operan debajo del sistema operativo. Snowden lo sabe. Vivió parte de este ecosistema desde dentro. Pero el libro habla de herramientas técnicas con una confianza que la realidad operativa actual no avala, porque venderle esperanza técnica al lector es más cómodo que decirle que, si alguien con recursos quiere entrar en su dispositivo, va a entrar.
+                </div>
+                <div class="critique-verdict">VEREDICTO: Consejo técnico desactualizado en el momento de su publicación</div>
+              </div>
+ 
+              <div class="critique-card">
+                <div class="critique-num">⚠ Argumento C / 03</div>
+                <div class="critique-title">La Generación Z Ya Vendió Su Privacidad por Filtros de Cámara</div>
+                <div class="critique-text">
+                    Snowden arriesgó su libertad, su carrera, su país y su vida familiar para que el mundo supiera que lo vigilaban. La respuesta de la generación siguiente fue instalar TikTok —aplicación bajo jurisdicción de la ley china de seguridad nacional— y grabar su dormitorio veinticuatro horas al día. No por ignorancia: por indiferencia funcional, activa y razonada.
+                    Para una generación que creció con la cámara frontal ya encendida, la privacidad no es un derecho inalienable, sino una moneda de cambio devaluada. Snowden sacrificó su realidad por un concepto que hoy suena a nostalgia analógica: la sospecha. Mientras él vive en un exilio eterno por revelar que nos escuchaban sin permiso, el usuario moderno invita al algoritmo a su cama, le confiesa sus traumas y le entrega su biometría a cambio de dopamina algorítmica. La tragedia de Snowden no fue ser perseguido por el Estado; su verdadera tragedia es la irrelevancia de su sacrificio ante una sociedad que ya no teme al Gran Hermano, siempre que este le proporcione entretenimiento infinito y validación social.
+                </div>
+              </div>
+ 
+            </div>
+          </div>
+        </div>
+ 
+      </div><!-- /content-screen -->
+    </div><!-- /content-panel -->
+  </div><!-- /content-outer -->
+ 
+  <!-- FOOTER -->
+  <div class="dvd-footer">
+    <div class="footer-dots">
+      <div class="dot" id="dot-0"></div>
+      <div class="dot" id="dot-1"></div>
+      <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
+    </div>
+    <div class="footer-info">DOLBY DIGITAL 5.1 &nbsp;·&nbsp; 16:9 WIDESCREEN &nbsp;·&nbsp; CLASSIFIED</div>
+    <div class="footer-copy">© 2013 PERMANENT RECORD · ALL RIGHTS RESERVED</div>
+  </div>
+ 
+</div><!-- /dvd-frame -->
+ 
+<script>
+  // Generate particles
+  const particlesEl = document.getElementById('particles');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 2 + 0.5;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      animation-duration:${8 + Math.random()*12}s;
+      animation-delay:${Math.random()*10}s;
+      opacity:0;
+    `;
+    particlesEl.appendChild(p);
+  }
+ 
+  const sections = ['play', 'bonus', 'commentary', 'deleted'];
+  const dotMap = { play: 0, bonus: 1, commentary: 2, deleted: 3 };
+  let current = null;
+ 
+  function showSection(id) {
+    // Hide idle
+    document.getElementById('view-idle').style.display = 'none';
+ 
+    // Hide all views
+    sections.forEach(s => {
+      const v = document.getElementById('view-' + s);
+      v.classList.remove('visible');
+      v.style.display = 'none';
+    });
+ 
+    // Deactivate all buttons, reset dots
+    sections.forEach(s => {
+      document.getElementById('btn-' + s).classList.remove('active');
+      const dot = document.getElementById('dot-' + dotMap[s]);
+      if (dot) dot.classList.remove('active');
+    });
+ 
+    // Show selected with fade
+    if (current === id) {
+      // Toggle off
+      document.getElementById('view-idle').style.display = 'flex';
+      current = null;
+      return;
+    }
+ 
+    current = id;
+    const view = document.getElementById('view-' + id);
+    view.style.display = 'block';
+    // Force reflow then animate
+    requestAnimationFrame(() => {
+      view.classList.add('visible');
+    });
+ 
+    document.getElementById('btn-' + id).classList.add('active');
+    const dot = document.getElementById('dot-' + dotMap[id]);
+    if (dot) dot.classList.add('active');
+  }
+ 
+  // Keyboard support
+  const keyMap = { '1': 'play', '2': 'bonus', '3': 'commentary', '4': 'deleted' };
+  document.addEventListener('keydown', e => {
+    if (keyMap[e.key]) showSection(keyMap[e.key]);
+    if (e.key === 'Escape') {
+      sections.forEach(s => {
+        const v = document.getElementById('view-' + s);
+        v.classList.remove('visible');
+        v.style.display = 'none';
+        document.getElementById('btn-' + s).classList.remove('active');
+        const dot = document.getElementById('dot-' + dotMap[s]);
+        if (dot) dot.classList.remove('active');
+      });
+      document.getElementById('view-idle').style.display = 'flex';
+      current = null;
+    }
+  });
+</script>
+</body>
+</html>
